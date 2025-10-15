@@ -1,5 +1,4 @@
 BAŞLA  
-
 // 1. Kart takma ve PIN doğrulama
 Kart_Tak()
 hak = 3
