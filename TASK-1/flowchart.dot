@@ -1,0 +1,110 @@
+digraph ATM_ParaCekme {
+    // Grafiğin genel ayarları
+    rankdir=TB; // Akış yönü: Yukarıdan Aşağıya (Top to Bottom)
+    node [fontname="Helvetica", style="filled"];
+
+    // Şekil tanımlamaları
+    node [shape=oval, fillcolor="#DAE8FC", color="#000000"]
+    START [label="BAŞLANGIÇ (ATM_ParaCekme)"];
+    END [label="BİTİR"];
+    BLOKE_SON [label="İŞLEM SONU\n(Kart Bloke)"];
+    GERI_DON [label="GERİ DÖN"];
+
+    node [shape=box, fillcolor="#DEEBF7", color="#000000"]
+    VARS_TANIM [label="Değişken Tanımlamaları\n(HATALI_PIN_SAYISI=0, BAKİYE=500.00, vb.)"];
+    PIN_HATASI [label="HATALI_PIN_SAYISI++\nKalan deneme: (3 - HPS)"];
+    ISLEM_SECIM [label="Ana İşlem Menüsü Görüntüle"];
+    BAKIYE_SORGULA [label="EKRANA_YAZ(BAKIYE)"];
+    BAKIYE_GUNCELLE [label="BAKİYE = BAKİYE - TUTAR\nGUNLUK_CEKILEN_TOPLAM += TUTAR"];
+    PARA_VER_FIS [label="ATM_PARA_VER(TUTAR)\nFİŞ_YAZDIR()\nEKRANA_YAZ(Para/Fiş Al)"];
+    GECERSIZ_SECIM [label="EKRANA_YAZ(Geçersiz seçim.)"];
+    KART_IADE_C [label="EKRANA_YAZ(Teşekkürler)\nKART_İADE_ET()"];
+
+    node [shape=parallelogram, fillcolor="#FFFFCC", color="#000000"]
+    KART_TAK [label="EKRANA_YAZ(Kart Tak)\nKART_TAKILDI = AL()"];
+    PIN_GIRIS [label="EKRANA_YAZ(PIN Giriniz)\nPIN_GİRİLDİ = AL()"];
+    TUTAR_GIRIS [label="EKRANA_YAZ(Tutar Giriniz)\nCEKILECEK_TUTAR = AL_SAYI()"];
+    DEVAM_CEVAP [label="EKRANA_YAZ(Başka İşlem? E/H)\nDEVAM_CEVABI = AL_METIN()"];
+
+    node [shape=diamond, fillcolor="#FFEBEB", color="#000000"]
+    KART_TAKILI_MI [label="KART_TAKILDI mı?"];
+    PIN_DOGRUMU [label="PIN_GİRİLDİ == DOĞRU_PIN mı?"];
+    LIMIT_DOLDU_MU [label="HATALI_PIN_SAYISI == 3 mü?"];
+    SECIM_CIKIS [label="SECIM == \"3\" mü?"];
+    SECIM_BAKIYE [label="SECIM == \"2\" mi?"];
+    SECIM_CEKME [label="SECIM == \"1\" mi?"];
+    LIMIT_ASIMI [label="ÇEKİLECEK TUTAR\n+ TOPLAM > LİMİT mi?"];
+    YIRMI_KATI_MI [label="TUTAR mod 20 == 0 mı?"];
+    YETERLI_BAKIYE [label="TUTAR > BAKİYE mi?"];
+    BASKA_ISLEM [label="DEVAM_CEVABI == 'H' mi?"];
+    ISLEM_DEVAM_ED [label="ISLEM_DEVAM == DOĞRU mu?"];
+
+
+    // Akışlar (Oklar ve Etiketler)
+    
+    // Başlangıç
+    START -> VARS_TANIM;
+    VARS_TANIM -> KART_TAK;
+
+    // Kart Takma Kontrolü
+    KART_TAK -> KART_TAKILI_MI;
+    KART_TAKILI_MI -> E0 [label="YANLIŞ", color="red"]; // E0'dan sonra END'e gidebilir veya hata mesajı
+    KART_TAKILI_MI -> PIN_GIRIS [label="DOĞRU"];
+
+    // PIN Giriş Döngüsü
+    PIN_GIRIS -> PIN_DOGRUMU;
+    PIN_DOGRUMU -> ISLEM_SECIM [label="DOĞRU"];
+    PIN_DOGRUMU -> PIN_HATASI [label="YANLIŞ"];
+
+    PIN_HATASI -> LIMIT_DOLDU_MU;
+    LIMIT_DOLDU_MU -> BLOKE_SON [label="DOĞRU", color="red"];
+    BLOKE_SON -> END;
+    LIMIT_DOLDU_MU -> PIN_GIRIS [label="YANLIŞ"];
+
+    // Bloke Kontrolü (Ayrı bir adım olarak gösterilebilir)
+    BLOKE_SON -> KART_IADE_C [label="Kart Bloke Değil" style=dotted]; // Bloke değilse ana döngüye devam et
+
+    // Ana İşlem Döngüsü Kontrolü
+    ISLEM_SECIM -> SECIM_CIKIS;
+    SECIM_CIKIS -> KART_IADE_C [label="DOĞRU"];
+    SECIM_CIKIS -> SECIM_BAKIYE [label="YANLIŞ"];
+
+    // Seçim Akışları
+    SECIM_BAKIYE -> BAKIYE_SORGULA [label="DOĞRU"];
+    SECIM_BAKIYE -> SECIM_CEKME [label="YANLIŞ"];
+
+    BAKIYE_SORGULA -> DEVAM_CEVAP;
+
+    SECIM_CEKME -> TUTAR_GIRIS [label="DOĞRU"];
+    SECIM_CEKME -> GECERSIZ_SECIM [label="YANLIŞ", color="red"];
+    GECERSIZ_SECIM -> DEVAM_CEVAP;
+
+    // Para Çekme Kontrolleri
+    TUTAR_GIRIS -> LIMIT_ASIMI;
+    LIMIT_ASIMI -> DEVAM_CEVAP [label="DOĞRU", color="red"];
+    LIMIT_ASIMI -> YIRMI_KATI_MI [label="YANLIŞ"];
+
+    YIRMI_KATI_MI -> DEVAM_CEVAP [label="YANLIŞ", color="red"];
+    YIRMI_KATI_MI -> YETERLI_BAKIYE [label="DOĞRU"];
+
+    YETERLI_BAKIYE -> DEVAM_CEVAP [label="DOĞRU", color="red"];
+    YETERLI_BAKIYE -> BAKIYE_GUNCELLE [label="YANLIŞ"];
+
+    BAKIYE_GUNCELLE -> PARA_VER_FIS;
+    PARA_VER_FIS -> DEVAM_CEVAP;
+
+    // Başka İşlem İster misiniz? Döngü Kontrolü
+    DEVAM_CEVAP -> BASKA_ISLEM;
+    BASKA_ISLEM -> KART_IADE_C [label="DOĞRU (H)"]; // İşlem sonu
+    BASKA_ISLEM -> ISLEM_SECIM [label="YANLIŞ (E)"]; // Döngünün başına dön
+
+    KART_IADE_C -> END;
+
+    // Kart Takılmama Durumu (Hata Çıkışı)
+    E0 [label="EKRANA_YAZ(Kart takılma hatası.)", shape=box, fillcolor="#FFC0CB", color="red"];
+    KART_TAKILI_MI -> E0 [label="YANLIŞ"];
+    E0 -> END;
+
+    // Kartın PIN Blokesinden Sonra İade Edilmesi (Ek Akış)
+    // BLOKE_SON -> KART_IADE_C;
+}
