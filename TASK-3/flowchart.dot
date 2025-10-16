@@ -1,0 +1,107 @@
+digraph Hasta_Islem_Sistemi {
+    rankdir=TB;
+    node [fontname="Arial", style=rounded];
+
+    start [shape=oval, label="Başla"];
+    tcInput [shape=parallelogram, label="TC Kimlik No gir"];
+    tcValid [shape=diamond, label="TC geçerli mi?"];
+    tcError [shape=box, label="Hata mesajı göster"];
+    hastaBul [shape=box, label="Hasta veritabanında aranır"];
+    hastaVar [shape=diamond, label="Hasta bulundu mu?"];
+    hastaYok [shape=box, label="Kayıtlı hasta yok\nSistemden çık"];
+    menu [shape=parallelogram, label="İşlem Seçimi:\n1-Randevu Al\n2-Tahlil Sonucu Gör\n0-Çıkış"];
+    secimKontrol [shape=diamond, label="Seçim?"];
+
+    // --- Randevu Modülü ---
+    poliklinikList [shape=box, label="Poliklinikleri listele"];
+    polSec [shape=parallelogram, label="Poliklinik seç"];
+    polKontrol [shape=diamond, label="Geçerli poliklinik mi?"];
+    doktorList [shape=box, label="Doktor listesini getir"];
+    drSec [shape=parallelogram, label="Doktor seç"];
+    drKontrol [shape=diamond, label="Geçerli doktor mu?"];
+    saatList [shape=box, label="Uygun saatleri listele"];
+    saatKontrol [shape=diamond, label="Uygun saat var mı?"];
+    saatSec [shape=parallelogram, label="Saat seç"];
+    saatGecerli [shape=diamond, label="Geçerli saat mi?"];
+    randevuOzeti [shape=box, label="Randevu özetini göster"];
+    onay [shape=diamond, label="Onaylıyor musunuz?"];
+    randevuKaydet [shape=box, label="Randevu kaydedilir\nSMS gönderilir"];
+    randevuIptal [shape=box, label="Randevu iptal edilir"];
+
+    // --- Tahlil Modülü ---
+    tahlilSorgu [shape=box, label="Tahlil listesi alınır"];
+    tahlilVar [shape=diamond, label="Tahlil var mı?"];
+    tahlilYok [shape=box, label="Tahlil bulunamadı"];
+    tahlilList [shape=box, label="Tahliller listelenir"];
+    tahlilSec [shape=parallelogram, label="Tahlil seç"];
+    tahlilGecerli [shape=diamond, label="Geçerli tahlil mi?"];
+    sonucHazir [shape=diamond, label="Sonuç hazır mı?"];
+    sonucBekle [shape=box, label="Sonuç henüz hazır değil"];
+    sonucGoster [shape=box, label="Tahlil sonucu görüntülenir"];
+    pdfIndir [shape=diamond, label="PDF indirilsin mi?"];
+    pdfOlustur [shape=box, label="PDF oluştur ve indir"];
+
+    // --- Ortak / Çıkış ---
+    tekrar [shape=diamond, label="Başka işlem yapmak ister misiniz?"];
+    bitis [shape=oval, label="Bitiş"];
+
+    // --- Akış ---
+    start -> tcInput;
+    tcInput -> tcValid;
+    tcValid -> tcError [label="Hayır"];
+    tcError -> tcInput;
+    tcValid -> hastaBul [label="Evet"];
+    hastaBul -> hastaVar;
+    hastaVar -> hastaYok [label="Hayır"];
+    hastaVar -> menu [label="Evet"];
+
+    menu -> secimKontrol;
+
+    // Randevu akışı
+    secimKontrol -> poliklinikList [label="1"];
+    poliklinikList -> polSec;
+    polSec -> polKontrol;
+    polKontrol -> menu [label="Hayır"];
+    polKontrol -> doktorList [label="Evet"];
+    doktorList -> drSec;
+    drSec -> drKontrol;
+    drKontrol -> menu [label="Hayır"];
+    drKontrol -> saatList [label="Evet"];
+    saatList -> saatKontrol;
+    saatKontrol -> menu [label="Hayır"];
+    saatKontrol -> saatSec [label="Evet"];
+    saatSec -> saatGecerli;
+    saatGecerli -> menu [label="Hayır"];
+    saatGecerli -> randevuOzeti [label="Evet"];
+    randevuOzeti -> onay;
+    onay -> randevuKaydet [label="Evet"];
+    onay -> randevuIptal [label="Hayır"];
+    randevuKaydet -> tekrar;
+    randevuIptal -> tekrar;
+
+    // Tahlil akışı
+    secimKontrol -> tahlilSorgu [label="2"];
+    tahlilSorgu -> tahlilVar;
+    tahlilVar -> tahlilYok [label="Hayır"];
+    tahlilYok -> tekrar;
+    tahlilVar -> tahlilList [label="Evet"];
+    tahlilList -> tahlilSec;
+    tahlilSec -> tahlilGecerli;
+    tahlilGecerli -> tekrar [label="Hayır"];
+    tahlilGecerli -> sonucHazir [label="Evet"];
+    sonucHazir -> sonucBekle [label="Hayır"];
+    sonucBekle -> tekrar;
+    sonucHazir -> sonucGoster [label="Evet"];
+    sonucGoster -> pdfIndir;
+    pdfIndir -> pdfOlustur [label="Evet"];
+    pdfIndir -> tekrar [label="Hayır"];
+    pdfOlustur -> tekrar;
+
+    // Çıkış seçimi
+    secimKontrol -> bitis [label="0"];
+
+    // Döngü sonu
+    tekrar -> menu [label="Evet"];
+    tekrar -> bitis [label="Hayır"];
+}
+
