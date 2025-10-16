@@ -1,0 +1,326 @@
+Sistem Gereksinimleri:
+O˘grenci giri¸si (¨o˘grenci no + ¸sifre) ¨
+Ders listesini g¨or¨unt¨uleme (d¨ong¨u)
+Her ders i¸cin:
+Kontenjan kontrol¨u (ko¸sul)
+On ko¸sul dersi kontrol¨u (ko¸sul) ¨
+Zaman ¸cakı¸sması kontrol¨u (ko¸sul)
+Kredi limiti kontrol¨u (toplam ≤ 35) (ko¸sul)
+Ders ekleme/¸cıkarma (d¨ong¨u)
+Danı¸sman onayı gerekli mi? (GPA ¡ 2.5 ise) (ko¸sul)
+Kayıt ¨ozeti g¨osterme ve kayıt onaylama sisteminin pseudocodunu yaz
+ChatGPT:
+
+Harika 👍
+Aşağıda senin verdiğin gereksinimlere göre, üniversite ders kayıt sistemini tüm mantıksal akışlarıyla anlatan detaylı ve anlaşılır sözde kod (pseudocode) bulunuyor.
+Her adımda koşullar (if/else), döngüler (for/while) ve kontroller açıkça belirtilmiştir.
+
+🎓 ÜNİVERSİTE DERS KAYIT SİSTEMİ — SÖZDE KOD
+// DERS KAYIT SİSTEMİ PSEUDOCODE
+
+// --- Başlangıç ---
+başla
+
+// Öğrenci girişi (öğrenci no + şifre)
+ogrenci <- NULL
+loginTekrar:
+    ogrNo <- input("Öğrenci numaranızı giriniz:")
+    sifre <- input("Şifrenizi giriniz:")
+
+    ogrenci <- ogrenciBilgisiGetir(ogrNo, sifre)
+    if ogrenci == NULL then
+        yaz("❌ Geçersiz numara veya şifre.")
+        tekrarDeneme <- input("Tekrar denemek ister misiniz? (E/H): ")
+        if tekrarDeneme == "E" or tekrarDeneme == "e" then
+            git loginTekrar
+        else
+            bitir
+        end if
+    else
+        yaz("👋 Hoş geldiniz, " + ogrenci.ad + " " + ogrenci.soyad)
+    end if
+
+// Değişkenler
+secilenDersler <- []       // liste
+toplamKredi <- 0
+maxKredi <- 35
+
+// Ders listesini görüntüleme döngüsü
+tumDersler <- dersListesiGetir(ogrenci.bolum)
+yaz("Mevcut dersler:")
+
+for her ders in tumDersler:
+    yaz(ders.kod + " - " + ders.ad + " (" + ders.kredi + " kredi, kontenjan: " + ders.kontenjan + ")")
+end for
+
+// Ders ekleme / çıkarma döngüsü
+dersIslem:
+    yaz("1 - Ders Ekle")
+    yaz("2 - Ders Çıkar")
+    yaz("3 - Kayıt Özeti Görüntüle / Onayla")
+    yaz("0 - Çıkış")
+    secim <- input("Seçiminiz: ")
+
+    if secim == 1 then
+        dersKod <- input("Eklemek istediğiniz dersin kodunu giriniz: ")
+        ders <- dersBul(dersKod)
+
+        if ders == NULL then
+            yaz("Geçersiz ders kodu.")
+            git dersIslem
+        end if
+
+        // --- KONTENJAN KONTROLÜ ---
+        if ders.kontenjan <= 0 then
+            yaz("❌ Bu derste kontenjan dolu.")
+            git dersIslem
+        end if
+
+        // --- ÖNKOŞUL DERS KONTROLÜ ---
+        if ders.onKosul != NULL then
+            if ders.onKosul not in ogrenci.gecilenDersler then
+                yaz("❌ Önkoşul dersi (" + ders.onKosul + ") alınmamış.")
+                git dersIslem
+            end if
+        end if
+
+        // --- ZAMAN ÇAKIŞMASI KONTROLÜ ---
+        cakisma <- FALSE
+        for her d in secilenDersler:
+            if d.zaman == ders.zaman then
+                cakisma <- TRUE
+            end if
+        end for
+        if cakisma == TRUE then
+            yaz("❌ Zaman çakışması var: " + ders.zaman)
+            git dersIslem
+        end if
+
+        // --- KREDİ LİMİTİ KONTROLÜ ---
+        if toplamKredi + ders.kredi > maxKredi then
+            yaz("❌ Toplam kredi limiti aşılıyor! (35 max)")
+            git dersIslem
+        end if
+
+        // Ders ekleme
+        secilenDersler.append(ders)
+        toplamKredi <- toplamKredi + ders.kredi
+        ders.kontenjan <- ders.kontenjan - 1
+        yaz("✅ " + ders.ad + " dersi eklendi.")
+        git dersIslem
+
+    else if secim == 2 then
+        if secilenDersler boş then
+            yaz("Henüz seçilmiş ders yok.")
+            git dersIslem
+        end if
+
+        yaz("Seçili dersler:")
+        for her d in secilenDersler:
+            yaz("- " + d.kod + ": " + d.ad)
+        end for
+
+        silKod <- input("Silmek istediğiniz dersin kodunu giriniz: ")
+        dersSil <- dersBul(silKod)
+
+        if dersSil not in secilenDersler then
+            yaz("Bu ders seçili değil.")
+        else
+            secilenDersler.remove(dersSil)
+            toplamKredi <- toplamKredi - dersSil.kredi
+            dersSil.kontenjan <- dersSil.kontenjan + 1
+            yaz("🗑️ " + dersSil.ad + " dersi çıkarıldı.")
+        end if
+        git dersIslem
+
+    else if secim == 3 then
+        // --- DANIŞMAN ONAYI KONTROLÜ ---
+        yaz("📋 Kayıt Özeti:")
+        for her d in secilenDersler:
+            yaz("- " + d.kod + ": " + d.ad + " (" + d.kredi + " kredi)")
+        end for
+        yaz("Toplam kredi: " + toplamKredi)
+
+        if ogrenci.GPA < 2.5 then
+            yaz("⚠️ Danışman onayı gerekli (GPA < 2.5)")
+            onay <- input("Danışman onayı verildi mi? (E/H): ")
+            if onay != "E" and onay != "e" then
+                yaz("Kayıt tamamlanamadı. Danışman onayı bekleniyor.")
+                git dersIslem
+            end if
+        end if
+
+        // Kayıt onayı
+        kayitOnay <- input("Kayıt onaylansın mı? (E/H): ")
+        if kayitOnay == "E" or kayitOnay == "e" then
+            kaydetKayıt(ogrenci, secilenDersler)
+            yaz("✅ Kayıt başarıyla tamamlandı.")
+            bitir
+        else
+            yaz("Kayıt onaylanmadı, değişiklik yapabilirsiniz.")
+            git dersIslem
+        end if
+
+    else if secim == 0 then
+        yaz("Sistemden çıkılıyor...")
+        bitir
+
+    else
+        yaz("Geçersiz seçim!")
+        git dersIslem
+    end if
+
+bitir
+
+🧠 Açıklama:
+
+Bu algoritma sırasıyla şunları yapar:
+
+Kullanıcı girişi doğrulaması (öğrenci no + şifre)
+
+Ders listesi döngüsü: tüm dersleri gösterir.
+
+Ders ekleme / çıkarma döngüsü: kullanıcı istediği kadar değişiklik yapabilir.
+
+Her ekleme için kontroller:
+
+🧩 Kontenjan
+
+📘 Önkoşul
+
+🕒 Zaman çakışması
+
+🎓 Kredi limiti ≤ 35
+
+Danışman onayı: GPA < 2.5 ise zorunlu
+
+Kayıt özeti: tüm dersler ve toplam kredi listelenir
+
+Onay veya iptal seçeneği
+
+İstersen şimdi bu algoritmayı da — tıpkı önceki sistemlerde yaptığımız gibi —
+Graphviz DOT akış diyagramına çevirebilirim (oval, diamond, parallelogram, box şekilleriyle).
+
+👉 Bunu senin için .dot biçiminde hazırlamamı ister misin?
+
+Şunu dedin:
+graphvizde kullanabileceğim şekilde dot diline çevirir misin
+ChatGPT:
+
+Tabii! 🎯
+Aşağıda, öğrenci ders kayıt sistemi algoritmasını doğrudan Graphviz (.dot) biçiminde çalıştırabileceğin şekilde verdim.
+Bu dosyayı bir .dot dosyası olarak kaydedip Graphviz Online
+ veya graphviz yazılımında açabilirsin.
+
+🧾 Graphviz DOT Kodu: Öğrenci Ders Kayıt Sistemi
+digraph DersKayitSistemi {
+    rankdir=TB;
+    node [shape=rectangle, style=rounded, fontname="Arial"];
+
+    // Başlangıç
+    start [label="Başla", shape=oval, style=filled, fillcolor=lightblue];
+
+    // Öğrenci girişi
+    login [label="Öğrenci No ve Şifre Al", shape=parallelogram];
+    kontrol_giris [label="Geçerli Giriş mi?", shape=diamond];
+
+    // Hatalı giriş
+    hatali_giris [label="Hatalı Giriş\nTekrar dene?", shape=diamond];
+    giris_tekrar [label="Yeniden Giriş", shape=box];
+    bitir [label="Bitir", shape=oval, style=filled, fillcolor=lightgray];
+
+    // Ders listesi
+    ders_listesi [label="Ders Listesini Göster", shape=box];
+    islem_menu [label="1-Ders Ekle\n2-Ders Çıkar\n3-Kayıt Özeti\n0-Çıkış", shape=parallelogram];
+    secim_kontrol [label="Kullanıcı Seçimi", shape=diamond];
+
+    // Ders ekleme süreci
+    ders_kod [label="Ders Kodu Al", shape=parallelogram];
+    ders_varmi [label="Ders Geçerli mi?", shape=diamond];
+    kontenjan [label="Kontenjan Uygun mu?", shape=diamond];
+    onkosul [label="Önkoşul Sağlanmış mı?", shape=diamond];
+    cakisma [label="Zaman Çakışması Var mı?", shape=diamond];
+    kredi [label="Kredi Limiti Aşılmış mı?\n(>35)", shape=diamond];
+    ekle [label="Ders Ekle\nKredi Güncelle\nKontenjan Azalt", shape=box];
+    ekle_bitti [label="İşleme Dön", shape=box];
+
+    // Ders çıkarma süreci
+    ders_cikar [label="Seçili Dersleri Göster", shape=box];
+    cikar_kod [label="Silinecek Ders Kodu Al", shape=parallelogram];
+    cikar_varmi [label="Ders Seçili mi?", shape=diamond];
+    sil [label="Dersi Sil\nKredi Güncelle\nKontenjan Artır", shape=box];
+
+    // Kayıt özeti ve onay
+    ozeti_goster [label="Kayıt Özeti Göster", shape=box];
+    gpa_kontrol [label="GPA < 2.5 mi?", shape=diamond];
+    danisman [label="Danışman Onayı Alındı mı?", shape=diamond];
+    onay [label="Kayıt Onayı Alındı mı?", shape=diamond];
+    kayit_ok [label="Kaydı Kaydet", shape=box];
+    kayit_bekle [label="Danışman Onayı Bekleniyor", shape=box];
+
+    // Çıkış
+    cikis [label="Sistemden Çık", shape=oval, style=filled, fillcolor=lightgray];
+
+    // Bağlantılar
+    start -> login -> kontrol_giris;
+
+    kontrol_giris -> ders_listesi [label="Evet"];
+    kontrol_giris -> hatali_giris [label="Hayır"];
+
+    hatali_giris -> giris_tekrar [label="Evet"];
+    giris_tekrar -> login;
+    hatali_giris -> bitir [label="Hayır"];
+
+    ders_listesi -> islem_menu -> secim_kontrol;
+
+    // Seçimler
+    secim_kontrol -> ders_kod [label="1: Ekle"];
+    secim_kontrol -> ders_cikar [label="2: Çıkar"];
+    secim_kontrol -> ozeti_goster [label="3: Özet"];
+    secim_kontrol -> cikis [label="0: Çıkış"];
+
+    // Ekleme süreci
+    ders_kod -> ders_varmi;
+    ders_varmi -> kontenjan [label="Evet"];
+    ders_varmi -> ekle_bitti [label="Hayır"];
+    kontenjan -> onkosul [label="Evet"];
+    kontenjan -> ekle_bitti [label="Hayır"];
+    onkosul -> cakisma [label="Evet"];
+    onkosul -> ekle_bitti [label="Hayır"];
+    cakisma -> kredi [label="Hayır"];
+    cakisma -> ekle_bitti [label="Evet"];
+    kredi -> ekle [label="Hayır"];
+    kredi -> ekle_bitti [label="Evet"];
+    ekle -> ekle_bitti;
+    ekle_bitti -> islem_menu;
+
+    // Çıkarma süreci
+    ders_cikar -> cikar_kod -> cikar_varmi;
+    cikar_varmi -> sil [label="Evet"];
+    sil -> islem_menu;
+    cikar_varmi -> islem_menu [label="Hayır"];
+
+    // Kayıt özeti
+    ozeti_goster -> gpa_kontrol;
+    gpa_kontrol -> danisman [label="Evet"];
+    gpa_kontrol -> onay [label="Hayır"];
+    danisman -> onay [label="Evet"];
+    danisman -> kayit_bekle [label="Hayır"];
+    kayit_bekle -> islem_menu;
+    onay -> kayit_ok [label="Evet"];
+    onay -> islem_menu [label="Hayır"];
+    kayit_ok -> bitir;
+}
+
+💡 Nasıl kullanılır:
+
+Yukarıdaki kodu bir dosyaya kaydet:
+👉 ders_kayit.dot
+
+Sonra terminalde şu komutu çalıştır:
+
+dot -Tpng ders_kayit.dot -o ders_kayit.png
+
+
+Ya da GraphvizOnline
+ sitesine yapıştırarak anında şemayı görebilirsin.
