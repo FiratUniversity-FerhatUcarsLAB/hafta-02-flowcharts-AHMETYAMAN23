@@ -1,0 +1,76 @@
+digraph AkilliEvGuvenlik {
+    rankdir=TB;
+    node [fontname="Arial", style=rounded];
+
+    // --- Başlangıç ---
+    start [label="Başla", shape=oval, style=filled, fillcolor=lightblue];
+
+    // --- Başlatma adımları ---
+    init [label="Sensörleri Tanımla\n(hareket, ışık, duman, sıcaklık, kamera)", shape=box];
+    aktif [label="Sistem Aktif ve İzleme Modunda", shape=box];
+
+    // --- Sonsuz döngü ---
+    dongu [label="ANA DÖNGÜ (while DOĞRU)", shape=oval, style=filled, fillcolor=lightyellow];
+    sensor_okuma [label="Tüm sensörleri oku", shape=parallelogram];
+    tehdit_sifir [label="tehditSeviyesi = 0", shape=box];
+
+    // --- Tehdit tespiti ---
+    hareket_kontrol [label="Hareket var mı?", shape=diamond];
+    duman_kontrol [label="Duman veya ısı > 50°C var mı?", shape=diamond];
+    kamera_kontrol [label="Kamera: Yabancı kişi tespit edildi mi?", shape=diamond];
+
+    // --- Tehdit seviyesi değerlendirme ---
+    tehdit_deger [label="Tehdit Seviyesi Belirle", shape=box];
+    seviye_kontrol [label="Tehdit Seviyesi", shape=diamond];
+
+    // --- Farklı tehdit düzeyleri ---
+    guvenli [label="🌙 Güvenli Durum\nAlarm Kapalı", shape=box];
+    dusuk [label="⚠️ Düşük Tehdit (Hareket Algılandı)", shape=box];
+    orta [label="🚨 Orta Tehdit (Duman / Yüksek Isı)\nAlarm Çal, Bildirim Gönder", shape=box];
+    yuksek [label="🚨🚨 Yüksek Tehdit (Yabancı Kişi)\nAlarm + Kamera Kaydı + Bildirim", shape=box];
+
+    // --- Alarm sıfırlama ---
+    alarm_kontrol [label="Alarm Durumu 'AÇIK' mı?", shape=diamond];
+    reset_kontrol [label="Kullanıcı 'SIFIRLA' komutu girdi mi?", shape=diamond];
+    alarm_reset [label="🔕 Alarm Sıfırla\nSistemi İzleme Moduna Al", shape=box];
+    alarm_aktif [label="⏳ Alarm Aktif, İzleme Devam", shape=box];
+
+    // --- Döngü tekrarı ---
+    bekle [label="Bekle(5 saniye)", shape=box];
+    loop_back [label="Yeni Sensör Verisi Oku", shape=box];
+
+    // --- Akış bağlantıları ---
+    start -> init -> aktif -> dongu;
+    dongu -> sensor_okuma -> tehdit_sifir;
+    tehdit_sifir -> hareket_kontrol;
+
+    hareket_kontrol -> duman_kontrol [label="Evet\n(+1)"];
+    hareket_kontrol -> duman_kontrol [label="Hayır"];
+    duman_kontrol -> kamera_kontrol [label="Evet\n(+2)"];
+    duman_kontrol -> kamera_kontrol [label="Hayır"];
+    kamera_kontrol -> tehdit_deger [label="Evet\n(+3)"];
+    kamera_kontrol -> tehdit_deger [label="Hayır"];
+
+    tehdit_deger -> seviye_kontrol;
+
+    seviye_kontrol -> guvenli [label="0"];
+    seviye_kontrol -> dusuk [label="1"];
+    seviye_kontrol -> orta [label="2"];
+    seviye_kontrol -> yuksek [label="3+"];
+
+    guvenli -> alarm_kontrol;
+    dusuk -> alarm_kontrol;
+    orta -> alarm_kontrol;
+    yuksek -> alarm_kontrol;
+
+    alarm_kontrol -> reset_kontrol [label="Evet"];
+    alarm_kontrol -> bekle [label="Hayır"];
+
+    reset_kontrol -> alarm_reset [label="Evet"];
+    reset_kontrol -> alarm_aktif [label="Hayır"];
+
+    alarm_reset -> bekle;
+    alarm_aktif -> bekle;
+
+    bekle -> loop_back -> dongu;
+}
