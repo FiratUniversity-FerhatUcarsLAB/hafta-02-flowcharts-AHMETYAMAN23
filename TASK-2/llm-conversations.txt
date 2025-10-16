@@ -1,0 +1,354 @@
+
+Şunu dedin:
+Kullanıcı giriş kontrolü (koşul)
+ürün kategorileri arasında gezinme (döng¨) 
+ürün sepete ekleme 
+Stok kontrolu (koşul)
+Sepeti görüntüleme ve düzenleme (döngü)
+˙
+Indirim kodu uygulanabilir (koşul)
+Minimum 50 TL kontrolü (koşul)
+Kargo ücreti hesaplama (koşul: 200 TL ücretsiz)
+Odeme yöntemi seçimi (koşul) 
+Sipariş onayı sözde kodunu yaz
+ChatGPT:
+
+10s boyunca düşündüm
+Aşağıda verdiğin gereksinimleri kapsayan, okunaklı ve adım adım ilerleyen bir sözde kod (pseudocode) var. Her koşul ve döngü açıkça belirtilmiş; hata durumları ve kullanıcı geri bildirimleri de eklenmiş.
+
+// E-Ticaret sipariş akışı - Sözde Kod
+
+// Başlangıç değişkenleri
+userLoggedIn <- FALSE
+categories <- [kategori1, kategori2, ...]
+cart <- []                     // her öğe: {productId, name, price, qty}
+total <- 0.0
+discountCode <- NULL
+discountAmount <- 0.0
+shippingFee <- 0.0
+paymentMethod <- NULL
+MIN_ORDER_AMOUNT <- 50.0
+FREE_SHIPPING_THRESHOLD <- 200.0
+
+// Yardımcı fonksiyonlar
+function checkLogin():
+    if userLoggedIn == TRUE:
+        return TRUE
+    else:
+        // Kullanıcıya giriş yapması istenir
+        prompt "Lütfen giriş yapın veya kayıt olun."
+        if kullanıcı giriş yaparsa:
+            userLoggedIn <- TRUE
+            return TRUE
+        else:
+            return FALSE
+
+function listCategories():
+    for each category in categories:
+        display category
+    // Kullanıcı bir kategori seçer veya çıkış yapar
+    selectedCategory <- user seçimi
+    return selectedCategory
+
+function listProducts(category):
+    products <- fetchProducts(category)   // ürün listesi: {id, name, price, stock}
+    for each p in products:
+        display p.name, p.price, p.stock
+    return products
+
+function addToCart(productId, qty):
+    product <- getProductById(productId)
+    if product == NULL:
+        display "Ürün bulunamadı."
+        return
+    // Stok kontrolü
+    if product.stock >= qty:
+        existing <- find cart item with productId
+        if existing != NULL:
+            existing.qty <- existing.qty + qty
+        else:
+            cart.append({productId, product.name, product.price, qty})
+        product.stock <- product.stock - qty      // stok güncellemesi (geçici)
+        display qty + " adet eklendi: " + product.name
+    else:
+        display "Yetersiz stok. Mevcut stok: " + product.stock
+
+function calculateCartTotal():
+    total <- 0
+    for each item in cart:
+        total <- total + (item.price * item.qty)
+    return total
+
+function applyDiscount(code):
+    if code == NULL or code == "":
+        display "İndirim kodu girilmedi."
+        return 0.0
+    if validateDiscountCode(code):      // kodu doğrulayan iş kuralı
+        amount <- computeDiscountAmount(code, total) // sabit veya % bazlı
+        display "İndirim uygulandı: " + format(amount) + " TL"
+        return amount
+    else:
+        display "Geçersiz indirim kodu."
+        return 0.0
+
+function calculateShipping(totalAfterDiscount):
+    if totalAfterDiscount >= FREE_SHIPPING_THRESHOLD:
+        return 0.0
+    else:
+        // Basit kargo hesaplama örneği
+        return 10.0 + (totalAfterDiscount * 0.02)   // sabit + yüzde
+
+function selectPaymentMethod():
+    methods <- ["Kredi Kartı", "Havale/EFT", "Kapıda Ödeme"]
+    display methods
+    choice <- user seçimi
+    if choice in methods:
+        return choice
+    else:
+        display "Geçersiz ödeme yöntemi."
+        return NULL
+
+function confirmOrder(orderSummary):
+    display orderSummary
+    prompt "Siparişi onaylıyor musunuz? (E/H)"
+    if user onay == "E":
+        createOrderInSystem(orderSummary)
+        display "Sipariş başarılı! Sipariş numarası: " + orderId
+        return TRUE
+    else:
+        display "Sipariş iptal edildi."
+        return FALSE
+
+// Ana akış
+if not checkLogin():
+    exit program  // kullanıcı giriş yapmadıysa işlem sonlandırılır
+
+// Ürün gezinme ve sepete ekleme döngüsü
+while TRUE:
+    category <- listCategories()
+    if category == "Çıkış" or category == NULL:
+        break
+    products <- listProducts(category)
+
+    // Kullanıcı ürün seçer veya geri döner
+    userAction <- prompt "Ürün ID girin veya 'geri'/'sepet'/'çıktı' yazın"
+    if userAction == "çıktı":
+        break
+    else if userAction == "sepet":
+        // Sepeti görüntüle / düzenle
+        // Sepet görüntüleme ve düzenleme döngüsü
+        while TRUE:
+            displayCart(cart)
+            display "1: Ürün miktarını değiştir, 2: Ürün sil, 3: Devam et, 4: Çık"
+            choice <- user seçimi
+            if choice == 1:
+                pid <- prompt "Ürün ID:"
+                newQty <- prompt "Yeni miktar:"
+                item <- find cart item with pid
+                product <- getProductById(pid)
+                if newQty <= 0:
+                    display "Geçersiz miktar."
+                else if product.stock + item.qty >= newQty: // önceki rezerv dahil
+                    // stok ayarlaması: önceki qty'yi iade et, sonra yeni qty düş
+                    product.stock <- product.stock + item.qty - newQty
+                    item.qty <- newQty
+                    display "Miktar güncellendi."
+                else:
+                    display "Yetersiz stok."
+            else if choice == 2:
+                pid <- prompt "Silinecek Ürün ID:"
+                item <- find cart item with pid
+                if item != NULL:
+                    product <- getProductById(pid)
+                    product.stock <- product.stock + item.qty  // stok iade
+                    remove item from cart
+                    display "Ürün silindi."
+                else:
+                    display "Ürün sepette yok."
+            else if choice == 3:
+                break  // düzenleme tamam, ana akışa dön
+            else if choice == 4:
+                exit program
+            end if
+        end while
+    else:
+        // Normal ürün ekleme akışı
+        pid <- userAction
+        qty <- prompt "Adet:"
+        addToCart(pid, qty)
+    end if
+end while
+
+// Sipariş öncesi kontroller
+total <- calculateCartTotal()
+display "Ara toplam: " + format(total) + " TL"
+
+// Minimum 50 TL kontrolü (koşul)
+if total < MIN_ORDER_AMOUNT:
+    display "Minimum sipariş tutarı " + MIN_ORDER_AMOUNT + " TL'dir. Şu an: " + format(total) + " TL"
+    prompt "Alışverişe devam etmek ister misiniz? (E/H)"
+    if user cevap == "E":
+        // kullanıcıyı kategorilere geri yönlendir
+        goto ÜrünGezinmeBaşlangıcı
+    else:
+        exit program
+end if
+
+// İndirim kodu uygulanabilir (koşul)
+prompt "İndirim kodunuz var mı? (Kodu girin veya boş bırakın)"
+inputCode <- kullanıcı girdisi
+discountAmount <- applyDiscount(inputCode)
+totalAfterDiscount <- total - discountAmount
+if totalAfterDiscount < 0:
+    totalAfterDiscount <- 0
+
+// Kargo ücreti hesaplama (koşul: 200 TL ücretsiz)
+shippingFee <- calculateShipping(totalAfterDiscount)
+display "Kargo ücreti: " + format(shippingFee) + " TL"
+
+grandTotal <- totalAfterDiscount + shippingFee
+display "Genel Toplam: " + format(grandTotal) + " TL"
+
+// Ödeme yöntemi seçimi (koşul)
+while TRUE:
+    paymentMethod <- selectPaymentMethod()
+    if paymentMethod != NULL:
+        // Ödeme yöntemi ile ilgili koşulları kontrol et (ör: kapıda ödeme için limit)
+        if paymentMethod == "Kapıda Ödeme" and grandTotal > 1000:
+            display "Kapıda ödeme için limit 1000 TL'dir."
+            continue
+        end if
+        break
+    end if
+end while
+
+// Sipariş onayı
+orderSummary <- {
+    "items": cart,
+    "subtotal": total,
+    "discount": discountAmount,
+    "shipping": shippingFee,
+    "grandTotal": grandTotal,
+    "paymentMethod": paymentMethod
+}
+if confirmOrder(orderSummary):
+    // Başarılı sipariş sonrası işlemler (stok kalıcı güncelleme, e-posta, fatura vb.)
+    sendOrderConfirmationEmail(user, orderSummary)
+    clear cart
+else:
+    // Sipariş iptal edildi - stok iade işlemi zaten cart düzenlemelerinde yapıldıysa ekstra gerek yok
+    display "Sipariş oluşturulmadı."
+end if
+
+// Program sonu
+display "İyi günler!"
+İstersen bunu daha resmi bir akış diyagramına (Graphviz DOT) ya da gerçek bir programlama diline (ör. Python/JavaScript) çevirebilirim. Hangi formatı istersin?
+
+Şunu dedin:
+graphviz dot diline çevirir misin
+ChatGPT:
+Elbette ✅
+Aşağıda verdiğin e-ticaret sipariş akışı sözde kodunun, tüm ana koşullar (decision diamond) ve döngüler (loop) dâhil olacak şekilde Graphviz DOT formatına çevrilmiş hali bulunuyor.
+Bu şemayı .dot dosyası olarak kaydedip Graphviz ile görselleştirebilirsin (örneğin: dot -Tpng siparis.dot -o siparis.png).
+
+digraph E_Ticaret_Siparis {
+    rankdir=TB;
+    node [shape=box, style=rounded, fontname="Arial"];
+
+    start [shape=oval, label="Başla"];
+    login [shape=diamond, label="Kullanıcı giriş yaptı mı?"];
+    loginPrompt [shape=parallelogram, label="Kullanıcı giriş yap veya kayıt ol"];
+    exit1 [shape=oval, label="Bitir"];
+    
+    browse [shape=box, label="Ürün kategorileri arasında gezin"];
+    selectCat [shape=parallelogram, label="Kategori seçimi"];
+    listProd [shape=box, label="Kategoriye ait ürünleri listele"];
+    chooseAction [shape=diamond, label="Kullanıcı eylemi? (Ürün Ekle / Sepet / Çıkış)"];
+
+    addProd [shape=box, label="Ürünü sepete ekle"];
+    stockCheck [shape=diamond, label="Stok yeterli mi?"];
+    stockNo [shape=box, label="Yetersiz stok uyarısı"];
+    
+    cartView [shape=box, label="Sepeti görüntüle ve düzenle"];
+    cartLoop [shape=diamond, label="Sepet düzenlemesi bitti mi?"];
+    
+    calcTotal [shape=box, label="Sepet toplamını hesapla"];
+    minCheck [shape=diamond, label="Toplam ≥ 50 TL mi?"];
+    contShop [shape=parallelogram, label="Alışverişe devam et? (E/H)"];
+    
+    discountAsk [shape=parallelogram, label="İndirim kodu gir"];
+    discountCheck [shape=diamond, label="Kod geçerli mi?"];
+    discountApply [shape=box, label="İndirim uygula"];
+    discountSkip [shape=box, label="İndirim uygulanmadı"];
+
+    shipCalc [shape=diamond, label="Toplam ≥ 200 TL mi?"];
+    shipFree [shape=box, label="Kargo Ücretsiz"];
+    shipPaid [shape=box, label="Kargo Ücreti Hesapla"];
+
+    paymentSelect [shape=parallelogram, label="Ödeme yöntemi seç"];
+    paymentCheck [shape=diamond, label="Geçerli ödeme yöntemi mi?"];
+    confirm [shape=diamond, label="Sipariş onaylandı mı?"];
+    orderSuccess [shape=box, label="Sipariş başarıyla oluşturuldu"];
+    orderFail [shape=box, label="Sipariş iptal edildi"];
+    end [shape=oval, label="Bitiş"];
+
+    // Akışlar
+    start -> login;
+    login -> loginPrompt [label="Hayır"];
+    login -> browse [label="Evet"];
+    loginPrompt -> exit1 [label="Giriş yapılmadı"];
+    loginPrompt -> browse [label="Giriş yapıldı"];
+
+    browse -> selectCat;
+    selectCat -> listProd;
+    listProd -> chooseAction;
+
+    chooseAction -> addProd [label="Ürün Ekle"];
+    chooseAction -> cartView [label="Sepet"];
+    chooseAction -> calcTotal [label="Çıkış"];
+
+    addProd -> stockCheck;
+    stockCheck -> stockNo [label="Hayır"];
+    stockCheck -> browse [label="Evet"];
+    stockNo -> browse;
+
+    cartView -> cartLoop;
+    cartLoop -> browse [label="Hayır"];
+    cartLoop -> cartView [label="Düzenleme devam"];
+
+    calcTotal -> minCheck;
+    minCheck -> discountAsk [label="Evet"];
+    minCheck -> contShop [label="Hayır"];
+    contShop -> browse [label="Evet"];
+    contShop -> end [label="Hayır"];
+
+    discountAsk -> discountCheck;
+    discountCheck -> discountApply [label="Evet"];
+    discountCheck -> discountSkip [label="Hayır"];
+    discountApply -> shipCalc;
+    discountSkip -> shipCalc;
+
+    shipCalc -> shipFree [label="Evet"];
+    shipCalc -> shipPaid [label="Hayır"];
+    shipFree -> paymentSelect;
+    shipPaid -> paymentSelect;
+
+    paymentSelect -> paymentCheck;
+    paymentCheck -> confirm [label="Evet"];
+    paymentCheck -> paymentSelect [label="Hayır"];
+
+    confirm -> orderSuccess [label="Evet"];
+    confirm -> orderFail [label="Hayır"];
+
+    orderSuccess -> end;
+    orderFail -> end;
+}
+🎯 Grafikteki şekil türleri:
+
+Oval: Başla / Bitiş
+
+Parallelogram: Girdi / Çıktı (örnek: kullanıcıdan giriş almak, bilgi göstermek)
+
+Kutu (box): İşlem (örnek: hesaplama, ekleme)
+
+Elmas (diamond): Koşul / Karar noktası
