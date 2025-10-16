@@ -1,0 +1,98 @@
+digraph DersKayitSistemi {
+    rankdir=TB;
+    node [shape=rectangle, style=rounded, fontname="Arial"];
+
+    // Başlangıç
+    start [label="Başla", shape=oval, style=filled, fillcolor=lightblue];
+
+    // Öğrenci girişi
+    login [label="Öğrenci No ve Şifre Al", shape=parallelogram];
+    kontrol_giris [label="Geçerli Giriş mi?", shape=diamond];
+
+    // Hatalı giriş
+    hatali_giris [label="Hatalı Giriş\nTekrar dene?", shape=diamond];
+    giris_tekrar [label="Yeniden Giriş", shape=box];
+    bitir [label="Bitir", shape=oval, style=filled, fillcolor=lightgray];
+
+    // Ders listesi
+    ders_listesi [label="Ders Listesini Göster", shape=box];
+    islem_menu [label="1-Ders Ekle\n2-Ders Çıkar\n3-Kayıt Özeti\n0-Çıkış", shape=parallelogram];
+    secim_kontrol [label="Kullanıcı Seçimi", shape=diamond];
+
+    // Ders ekleme süreci
+    ders_kod [label="Ders Kodu Al", shape=parallelogram];
+    ders_varmi [label="Ders Geçerli mi?", shape=diamond];
+    kontenjan [label="Kontenjan Uygun mu?", shape=diamond];
+    onkosul [label="Önkoşul Sağlanmış mı?", shape=diamond];
+    cakisma [label="Zaman Çakışması Var mı?", shape=diamond];
+    kredi [label="Kredi Limiti Aşılmış mı?\n(>35)", shape=diamond];
+    ekle [label="Ders Ekle\nKredi Güncelle\nKontenjan Azalt", shape=box];
+    ekle_bitti [label="İşleme Dön", shape=box];
+
+    // Ders çıkarma süreci
+    ders_cikar [label="Seçili Dersleri Göster", shape=box];
+    cikar_kod [label="Silinecek Ders Kodu Al", shape=parallelogram];
+    cikar_varmi [label="Ders Seçili mi?", shape=diamond];
+    sil [label="Dersi Sil\nKredi Güncelle\nKontenjan Artır", shape=box];
+
+    // Kayıt özeti ve onay
+    ozeti_goster [label="Kayıt Özeti Göster", shape=box];
+    gpa_kontrol [label="GPA < 2.5 mi?", shape=diamond];
+    danisman [label="Danışman Onayı Alındı mı?", shape=diamond];
+    onay [label="Kayıt Onayı Alındı mı?", shape=diamond];
+    kayit_ok [label="Kaydı Kaydet", shape=box];
+    kayit_bekle [label="Danışman Onayı Bekleniyor", shape=box];
+
+    // Çıkış
+    cikis [label="Sistemden Çık", shape=oval, style=filled, fillcolor=lightgray];
+
+    // Bağlantılar
+    start -> login -> kontrol_giris;
+
+    kontrol_giris -> ders_listesi [label="Evet"];
+    kontrol_giris -> hatali_giris [label="Hayır"];
+
+    hatali_giris -> giris_tekrar [label="Evet"];
+    giris_tekrar -> login;
+    hatali_giris -> bitir [label="Hayır"];
+
+    ders_listesi -> islem_menu -> secim_kontrol;
+
+    // Seçimler
+    secim_kontrol -> ders_kod [label="1: Ekle"];
+    secim_kontrol -> ders_cikar [label="2: Çıkar"];
+    secim_kontrol -> ozeti_goster [label="3: Özet"];
+    secim_kontrol -> cikis [label="0: Çıkış"];
+
+    // Ekleme süreci
+    ders_kod -> ders_varmi;
+    ders_varmi -> kontenjan [label="Evet"];
+    ders_varmi -> ekle_bitti [label="Hayır"];
+    kontenjan -> onkosul [label="Evet"];
+    kontenjan -> ekle_bitti [label="Hayır"];
+    onkosul -> cakisma [label="Evet"];
+    onkosul -> ekle_bitti [label="Hayır"];
+    cakisma -> kredi [label="Hayır"];
+    cakisma -> ekle_bitti [label="Evet"];
+    kredi -> ekle [label="Hayır"];
+    kredi -> ekle_bitti [label="Evet"];
+    ekle -> ekle_bitti;
+    ekle_bitti -> islem_menu;
+
+    // Çıkarma süreci
+    ders_cikar -> cikar_kod -> cikar_varmi;
+    cikar_varmi -> sil [label="Evet"];
+    sil -> islem_menu;
+    cikar_varmi -> islem_menu [label="Hayır"];
+
+    // Kayıt özeti
+    ozeti_goster -> gpa_kontrol;
+    gpa_kontrol -> danisman [label="Evet"];
+    gpa_kontrol -> onay [label="Hayır"];
+    danisman -> onay [label="Evet"];
+    danisman -> kayit_bekle [label="Hayır"];
+    kayit_bekle -> islem_menu;
+    onay -> kayit_ok [label="Evet"];
+    onay -> islem_menu [label="Hayır"];
+    kayit_ok -> bitir;
+}
