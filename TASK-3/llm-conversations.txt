@@ -1,0 +1,347 @@
+Sistem Gereksinimleri:
+Hasta kimlik doğrulama (TC No) 
+˙
+Işlem seçimi: 1-Randevu Al, 2-Tahlil Sonucu Gör (koşul) 
+Randevu modülü: Poliklinik seçimi, doktor listesi, uygun saatler 
+(döngü) 
+Randevu onayı ve SMS gönderimi 
+Tahlil modülü: Tahlil var mı kontrolü (koşul) 
+Sonuç hazır mı kontrolü (koşul) 
+Sonuç görüntüleme veya bekleme mesajı 
+Sonuçları PDF indir seçeneği 
+Başka işlem yapmak ister misiniz? (döngü) bu sistemleri içeren algoritmanın detaylı ve en anlaşılır şekilde sözde kodunu yazar mısın
+ChatGPT:
+
+Elbette ✅
+Aşağıda verdiğin hastane sistemine ait senaryonun tüm koşullar (if/else) ve döngüler (while/for) ile açıklanmış, sade ama profesyonel şekilde yazılmış detaylı sözde kod (pseudocode) halini bulacaksın.
+
+Her adımda kullanıcıya ne gösterildiği, hangi kontroller yapıldığı ve sistemin nasıl davrandığı net bir şekilde belirtilmiştir.
+
+🏥 HASTA İŞLEM SİSTEMİ – SÖZDE KOD
+// HASTA İŞLEM SİSTEMİ PSEUDOCODE
+
+// --- Başlangıç ---
+başla
+
+// Hasta kimlik doğrulama
+tekrar:
+    TC <- input("Lütfen TC Kimlik Numaranızı giriniz:")
+    if TC geçerli formatta değilse:
+        yaz("Geçersiz TC numarası! 11 haneli olmalı.")
+        git tekrar
+    end if
+
+    hasta <- veritabanındaHastaAra(TC)
+    if hasta == yok:
+        yaz("Kayıtlı hasta bulunamadı. Lütfen danışmaya başvurun.")
+        bitir
+    else:
+        yaz("Hoş geldiniz, " + hasta.ad + " " + hasta.soyad)
+    end if
+
+// Ana işlem döngüsü
+tekrar_islem:
+    yaz("Lütfen yapmak istediğiniz işlemi seçiniz:")
+    yaz("1 - Randevu Al")
+    yaz("2 - Tahlil Sonucu Gör")
+    yaz("0 - Çıkış")
+
+    secim <- input("Seçiminiz: ")
+
+    // --- KOŞUL: İşlem Seçimi ---
+    if secim == 1 then
+        // ======================
+        // RANDEVU MODÜLÜ BAŞLANGIÇ
+        // ======================
+
+        yaz("Poliklinikler listeleniyor...")
+        poliklinikler <- sistemdenPoliklinikListesiAl()
+        
+        for her poliklinik in poliklinikler:
+            yaz(poliklinik.kod + " - " + poliklinik.ad)
+        end for
+
+        pSecim <- input("Lütfen poliklinik seçiniz (kod giriniz): ")
+        secilenPol <- poliklinikBul(pSecim)
+        if secilenPol == yok:
+            yaz("Geçersiz poliklinik seçimi!")
+            git tekrar_islem
+        end if
+
+        // Doktor listesi döngüsü
+        yaz("Doktorlar listeleniyor...")
+        doktorlar <- doktorListesiGetir(secilenPol)
+
+        for her dr in doktorlar:
+            yaz(dr.id + " - " + dr.ad + " (" + dr.unvan + ")")
+        end for
+
+        dSecim <- input("Doktor seçiniz (ID): ")
+        secilenDr <- doktorBul(dSecim)
+        if secilenDr == yok:
+            yaz("Geçersiz doktor seçimi!")
+            git tekrar_islem
+        end if
+
+        // Randevu saati seçimi döngüsü
+        saatler <- uygunSaatleriGetir(secilenDr)
+        if saatler boş:
+            yaz("Bu doktorda uygun randevu bulunmuyor.")
+            git tekrar_islem
+        end if
+
+        yaz("Uygun saatler:")
+        for her s in saatler:
+            yaz("- " + s)
+        end for
+
+        sSecim <- input("Randevu saatinizi seçiniz (örn: 10:30): ")
+        if sSecim not in saatler:
+            yaz("Geçersiz saat seçimi!")
+            git tekrar_islem
+        end if
+
+        // Randevu onayı
+        yaz("Randevu Özeti:")
+        yaz("Hasta: " + hasta.ad + " " + hasta.soyad)
+        yaz("Poliklinik: " + secilenPol.ad)
+        yaz("Doktor: " + secilenDr.ad)
+        yaz("Saat: " + sSecim)
+        
+        onay <- input("Onaylıyor musunuz? (E/H): ")
+        if onay == "E" or onay == "e":
+            randevuKaydet(hasta, secilenPol, secilenDr, sSecim)
+            smsGonder(hasta.tel, "Randevunuz onaylandı: " + sSecim)
+            yaz("✅ Randevunuz başarıyla oluşturuldu ve SMS gönderildi.")
+        else:
+            yaz("Randevu iptal edildi.")
+        end if
+
+        // Randevu modülü bitti
+        // ======================
+        
+    else if secim == 2 then
+        // ======================
+        // TAHLİL MODÜLÜ BAŞLANGIÇ
+        // ======================
+
+        yaz("Tahlil sonuçları sorgulanıyor...")
+        tahliller <- tahlilListesiGetir(hasta.TC)
+
+        // Koşul: Tahlil var mı?
+        if tahliller boş:
+            yaz("Henüz yapılmış tahlil bulunmamaktadır.")
+            git tekrar_islem
+        end if
+
+        // Tahlil seçimi döngüsü
+        yaz("Mevcut tahlilleriniz:")
+        for her t in tahliller:
+            yaz(t.id + " - " + t.tarih + " (" + t.tur + ")")
+        end for
+
+        tSecim <- input("Tahlil ID'si giriniz: ")
+        secilenTahlil <- tahlilBul(tSecim)
+
+        if secilenTahlil == yok:
+            yaz("Geçersiz tahlil seçimi!")
+            git tekrar_islem
+        end if
+
+        // Koşul: Sonuç hazır mı?
+        if secilenTahlil.sonucHazir == FALSE:
+            yaz("⏳ Sonuçlar henüz hazır değil. Lütfen daha sonra tekrar deneyin.")
+            git tekrar_islem
+        else:
+            yaz("✅ Sonuçlar bulundu:")
+            yaz(secilenTahlil.sonucMetni)
+            indirme <- input("Sonuçları PDF olarak indirmek ister misiniz? (E/H): ")
+            if indirme == "E" or indirme == "e":
+                pdfOlusturVeIndir(secilenTahlil)
+                yaz("PDF dosyası indirildi.")
+            end if
+        end if
+
+        // Tahlil modülü bitti
+        // ======================
+
+    else if secim == 0 then
+        yaz("Sistemden çıkış yapılıyor...")
+        bitir
+
+    else
+        yaz("Geçersiz seçim! Lütfen 1, 2 veya 0 giriniz.")
+    end if
+
+    // --- Döngü: başka işlem yapmak ister misiniz? ---
+    devam <- input("Başka işlem yapmak ister misiniz? (E/H): ")
+    if devam == "E" or devam == "e":
+        git tekrar_islem
+    else:
+        yaz("İyi günler, " + hasta.ad + "!")
+        bitir
+    end if
+
+bitir
+
+🧠 Özetle:
+
+Koşullar (if):
+
+TC doğrulama
+
+İşlem seçimi (randevu / tahlil)
+
+Stok yerine randevu uygunluğu
+
+Tahlil sonucu var mı / hazır mı
+
+Onaylama adımları
+
+Döngüler (for, while):
+
+Poliklinik, doktor, saat, tahlil listeleri
+
+İşlem tekrar döngüsü
+
+İstersen bu sözde kodu senin için bir Graphviz DOT akış diyagramına çevirebilirim (oval, diamond, parallelogram, box simgeleriyle).
+Böylece sistemi görsel olarak görebilirsin.
+
+👉 Görsel akış diyagramını da oluşturayım mı?
+
+Şunu dedin:
+bunu graphvizde kullanabileceğim şekilde dot diline çevirir misin
+ChatGPT:
+
+Elbette ✅
+Aşağıda yazdığın “Hasta İşlem Sistemi” algoritmasının tamamını Graphviz DOT diline uygun biçimde dönüştürdüm.
+Bu şemada:
+
+Oval (oval): Başla / Bitiş
+
+Parallelogram: Girdi / Çıktı işlemleri
+
+Box: Normal işlemler
+
+Diamond: Koşul veya karar noktaları
+
+Oklar: Akış yönünü gösterir
+
+Döngülerde geri dönüş bağlantıları belirtilmiştir
+
+Bu kodu hasta_sistemi.dot olarak kaydedip, şu komutla görselleştirebilirsin:
+
+dot -Tpng hasta_sistemi.dot -o hasta_sistemi.png
+
+digraph Hasta_Islem_Sistemi {
+    rankdir=TB;
+    node [fontname="Arial", style=rounded];
+
+    start [shape=oval, label="Başla"];
+    tcInput [shape=parallelogram, label="TC Kimlik No gir"];
+    tcValid [shape=diamond, label="TC geçerli mi?"];
+    tcError [shape=box, label="Hata mesajı göster"];
+    hastaBul [shape=box, label="Hasta veritabanında aranır"];
+    hastaVar [shape=diamond, label="Hasta bulundu mu?"];
+    hastaYok [shape=box, label="Kayıtlı hasta yok\nSistemden çık"];
+    menu [shape=parallelogram, label="İşlem Seçimi:\n1-Randevu Al\n2-Tahlil Sonucu Gör\n0-Çıkış"];
+    secimKontrol [shape=diamond, label="Seçim?"];
+
+    // --- Randevu Modülü ---
+    poliklinikList [shape=box, label="Poliklinikleri listele"];
+    polSec [shape=parallelogram, label="Poliklinik seç"];
+    polKontrol [shape=diamond, label="Geçerli poliklinik mi?"];
+    doktorList [shape=box, label="Doktor listesini getir"];
+    drSec [shape=parallelogram, label="Doktor seç"];
+    drKontrol [shape=diamond, label="Geçerli doktor mu?"];
+    saatList [shape=box, label="Uygun saatleri listele"];
+    saatKontrol [shape=diamond, label="Uygun saat var mı?"];
+    saatSec [shape=parallelogram, label="Saat seç"];
+    saatGecerli [shape=diamond, label="Geçerli saat mi?"];
+    randevuOzeti [shape=box, label="Randevu özetini göster"];
+    onay [shape=diamond, label="Onaylıyor musunuz?"];
+    randevuKaydet [shape=box, label="Randevu kaydedilir\nSMS gönderilir"];
+    randevuIptal [shape=box, label="Randevu iptal edilir"];
+
+    // --- Tahlil Modülü ---
+    tahlilSorgu [shape=box, label="Tahlil listesi alınır"];
+    tahlilVar [shape=diamond, label="Tahlil var mı?"];
+    tahlilYok [shape=box, label="Tahlil bulunamadı"];
+    tahlilList [shape=box, label="Tahliller listelenir"];
+    tahlilSec [shape=parallelogram, label="Tahlil seç"];
+    tahlilGecerli [shape=diamond, label="Geçerli tahlil mi?"];
+    sonucHazir [shape=diamond, label="Sonuç hazır mı?"];
+    sonucBekle [shape=box, label="Sonuç henüz hazır değil"];
+    sonucGoster [shape=box, label="Tahlil sonucu görüntülenir"];
+    pdfIndir [shape=diamond, label="PDF indirilsin mi?"];
+    pdfOlustur [shape=box, label="PDF oluştur ve indir"];
+
+    // --- Ortak / Çıkış ---
+    tekrar [shape=diamond, label="Başka işlem yapmak ister misiniz?"];
+    bitis [shape=oval, label="Bitiş"];
+
+    // --- Akış ---
+    start -> tcInput;
+    tcInput -> tcValid;
+    tcValid -> tcError [label="Hayır"];
+    tcError -> tcInput;
+    tcValid -> hastaBul [label="Evet"];
+    hastaBul -> hastaVar;
+    hastaVar -> hastaYok [label="Hayır"];
+    hastaVar -> menu [label="Evet"];
+
+    menu -> secimKontrol;
+
+    // Randevu akışı
+    secimKontrol -> poliklinikList [label="1"];
+    poliklinikList -> polSec;
+    polSec -> polKontrol;
+    polKontrol -> menu [label="Hayır"];
+    polKontrol -> doktorList [label="Evet"];
+    doktorList -> drSec;
+    drSec -> drKontrol;
+    drKontrol -> menu [label="Hayır"];
+    drKontrol -> saatList [label="Evet"];
+    saatList -> saatKontrol;
+    saatKontrol -> menu [label="Hayır"];
+    saatKontrol -> saatSec [label="Evet"];
+    saatSec -> saatGecerli;
+    saatGecerli -> menu [label="Hayır"];
+    saatGecerli -> randevuOzeti [label="Evet"];
+    randevuOzeti -> onay;
+    onay -> randevuKaydet [label="Evet"];
+    onay -> randevuIptal [label="Hayır"];
+    randevuKaydet -> tekrar;
+    randevuIptal -> tekrar;
+
+    // Tahlil akışı
+    secimKontrol -> tahlilSorgu [label="2"];
+    tahlilSorgu -> tahlilVar;
+    tahlilVar -> tahlilYok [label="Hayır"];
+    tahlilYok -> tekrar;
+    tahlilVar -> tahlilList [label="Evet"];
+    tahlilList -> tahlilSec;
+    tahlilSec -> tahlilGecerli;
+    tahlilGecerli -> tekrar [label="Hayır"];
+    tahlilGecerli -> sonucHazir [label="Evet"];
+    sonucHazir -> sonucBekle [label="Hayır"];
+    sonucBekle -> tekrar;
+    sonucHazir -> sonucGoster [label="Evet"];
+    sonucGoster -> pdfIndir;
+    pdfIndir -> pdfOlustur [label="Evet"];
+    pdfIndir -> tekrar [label="Hayır"];
+    pdfOlustur -> tekrar;
+
+    // Çıkış seçimi
+    secimKontrol -> bitis [label="0"];
+
+    // Döngü sonu
+    tekrar -> menu [label="Evet"];
+    tekrar -> bitis [label="Hayır"];
+}
+
+
+💡 Kısaca:
+Bu DOT şeması — kullanıcı TC kimlik doğrulamasından başlayarak —
+randevu alma ve tahlil sonucu görüntüleme işlemlerini,
+koşulları ve tekrar döngülerini açık biçimde gösterir.
