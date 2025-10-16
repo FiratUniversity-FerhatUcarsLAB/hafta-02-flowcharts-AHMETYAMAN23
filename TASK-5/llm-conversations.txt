@@ -1,0 +1,245 @@
+Sonsuz D¨ong¨u Yakla¸sımı
+“Akıllı ev g¨uvenlik sistemi 7/24 ¸calı¸sır. Ana d¨ong¨u i¸cinde sens¨or okuma,
+tehdit algılama, alarm verme ve bildirim g¨onderme s¨ure¸clerini i¸ceren
+pseudocode yaz.”
+Ozel Notlar: ¨
+Ana DONG ¨ U s¨urekli ¸calı¸sır (DO ¨ GRU ko¸sulu ile) ˘
+Her d¨ong¨u iterasyonunda t¨um sens¨orler kontrol edilir
+Tehdit seviyesine g¨ore farklı aksiyonlar alınır
+Alarm sıfırlama komutu gelene kadar devam eder bunu sözde kod olarak detaylı ve anlaşılması kolay şekilde yazar mısın
+ChatGPT:
+
+Elbette 👍
+Aşağıda, “Akıllı Ev Güvenlik Sistemi” için sonsuz döngü yaklaşımıyla yazılmış detaylı, sade ve anlaşılır bir sözde kod (pseudocode) bulacaksın.
+Her adım açıklamalı ve gerçek bir sistemde nasıl çalışacağını kolayca anlayabileceğin şekilde düzenlenmiştir.
+
+🏠 AKILLI EV GÜVENLİK SİSTEMİ – SÖZDE KOD
+// =========================================================
+//  AKILLI EV GÜVENLİK SİSTEMİ (Sonsuz Döngü Yaklaşımı)
+// =========================================================
+
+başla
+
+// 1️⃣ Sistem başlatma
+yaz("🔐 Akıllı Ev Güvenlik Sistemi başlatılıyor...")
+
+// Gerekli sensörleri tanımla
+hareketSensörü <- "Kapı / Pencere Hareket Sensörü"
+isikSensörü <- "Gece / Gündüz Sensörü"
+dumanSensörü <- "Yangın / Duman Sensörü"
+sicaklikSensörü <- "Isı Sensörü"
+kamera <- "Görüntü Tanıma Sensörü"
+
+// Başlangıç durumları
+alarmDurumu <- "KAPALI"
+tehditSeviyesi <- 0
+bildirimGonderildi <- YANLIŞ
+alarmReset <- YANLIŞ
+
+yaz("✅ Sistem aktif ve izleme modunda.")
+
+// 2️⃣ ANA DÖNGÜ – SÜREKLİ ÇALIŞIR
+// “DOĞRU” koşulu ile sonsuza kadar sürer
+while DOĞRU do
+
+    // --- Sensör verilerini oku ---
+    hareket <- sensörOku(hareketSensörü)
+    isik <- sensörOku(isikSensörü)
+    duman <- sensörOku(dumanSensörü)
+    sicaklik <- sensörOku(sicaklikSensörü)
+    kameraDurumu <- sensörOku(kamera)
+
+    // --- Tehdit algılama süreci ---
+    tehditSeviyesi <- 0  // her döngü başında sıfırla
+
+    if hareket == "VAR" then
+        tehditSeviyesi <- tehditSeviyesi + 1
+    end if
+
+    if duman == "VAR" or sicaklik > 50 then
+        tehditSeviyesi <- tehditSeviyesi + 2
+    end if
+
+    if kameraDurumu == "Yabancı Kişi" then
+        tehditSeviyesi <- tehditSeviyesi + 3
+    end if
+
+    // --- Tehdit seviyesi değerlendirme ---
+    if tehditSeviyesi == 0 then
+        yaz("🌙 Güvenli durumda, sistem izliyor...")
+        alarmDurumu <- "KAPALI"
+        bildirimGonderildi <- YANLIŞ
+
+    else if tehditSeviyesi == 1 then
+        yaz("⚠️ Düşük seviye tehdit algılandı! Kapı/Pencere kontrol ediliyor.")
+        alarmDurumu <- "HAZIR"
+
+    else if tehditSeviyesi == 2 then
+        yaz("🚨 Orta seviye tehdit (Duman veya yüksek ısı).")
+        alarmDurumu <- "AÇIK"
+        alarmCalistir()
+        if bildirimGonderildi == YANLIŞ then
+            bildirimGonder("Ev sahibine uyarı: Duman/Yüksek sıcaklık tespit edildi!")
+            bildirimGonderildi <- DOĞRU
+        end if
+
+    else if tehditSeviyesi >= 3 then
+        yaz("🚨🚨 Yüksek seviye tehdit (Yabancı kişi algılandı)!")
+        alarmDurumu <- "AÇIK"
+        alarmCalistir()
+        kameraKaydet()
+        if bildirimGonderildi == YANLIŞ then
+            bildirimGonder("Güvenlik ihlali! Yetkisiz kişi tespit edildi!")
+            bildirimGonderildi <- DOĞRU
+        end if
+    end if
+
+    // --- Alarm sıfırlama kontrolü ---
+    if alarmDurumu == "AÇIK" then
+        alarmReset <- input("Alarmı sıfırlamak için 'SIFIRLA' yazın (veya boş bırakın): ")
+
+        if alarmReset == "SIFIRLA" then
+            alarmDurumu <- "KAPALI"
+            tehditSeviyesi <- 0
+            yaz("🔕 Alarm sıfırlandı, sistem tekrar izleme moduna geçti.")
+        else
+            yaz("⏳ Alarm aktif durumda, izleme devam ediyor...")
+        end if
+    end if
+
+    // --- Döngü gecikmesi ---
+    bekle(5 saniye)  // sensörleri her 5 saniyede bir kontrol et
+
+end while
+
+bitir
+
+🧠 Açıklama (Özetle Ne Yapıyor):
+Adım	Açıklama
+1. Başlangıç	Sistem açılır, sensörler tanımlanır, izleme başlar.
+2. Sonsuz Döngü	while DOĞRU ifadesiyle sistem 7/24 sürekli çalışır.
+3. Sensör Okuma	Tüm sensörlerden anlık veriler alınır.
+4. Tehdit Algılama	Sensör sonuçlarına göre tehdit seviyesi belirlenir.
+5. Aksiyonlar	Düşük, orta veya yüksek tehditte farklı işlemler yapılır (alarm, bildirim, kayıt).
+6. Alarm Sıfırlama	Alarm, kullanıcı manuel olarak “SIFIRLA” yazana kadar açık kalır.
+7. Gecikme	Döngü 5 saniye bekler, ardından sensörleri yeniden kontrol eder.
+
+İstersen bu sonsuz döngü güvenlik sistemi algoritmasını da
+Graphviz akış diyagramına (DOT diliyle) çevirebilirim —
+oval (başla/bitir), parallelogram (girdi/çıktı), diamond (koşul), box (işlem) sembolleriyle.
+
+👉 İster misin bunu Graphviz DOT olarak da hazırlayayım?
+
+Şunu dedin:
+evet
+ChatGPT:
+
+Harika! 🎯
+Aşağıda “Akıllı Ev Güvenlik Sistemi (Sonsuz Döngü Yaklaşımı)” algoritmasının
+Graphviz DOT dilinde hazır hali var.
+
+Bu kodu doğrudan Graphviz Online
+ sitesine yapıştırarak veya .dot dosyasına kaydedip dot -Tpng dosya.dot -o cikti.png komutuyla görselleştirebilirsin.
+
+🏠 Graphviz DOT Kodu – Akıllı Ev Güvenlik Sistemi
+digraph AkilliEvGuvenlik {
+    rankdir=TB;
+    node [fontname="Arial", style=rounded];
+
+    // --- Başlangıç ---
+    start [label="Başla", shape=oval, style=filled, fillcolor=lightblue];
+
+    // --- Başlatma adımları ---
+    init [label="Sensörleri Tanımla\n(hareket, ışık, duman, sıcaklık, kamera)", shape=box];
+    aktif [label="Sistem Aktif ve İzleme Modunda", shape=box];
+
+    // --- Sonsuz döngü ---
+    dongu [label="ANA DÖNGÜ (while DOĞRU)", shape=oval, style=filled, fillcolor=lightyellow];
+    sensor_okuma [label="Tüm sensörleri oku", shape=parallelogram];
+    tehdit_sifir [label="tehditSeviyesi = 0", shape=box];
+
+    // --- Tehdit tespiti ---
+    hareket_kontrol [label="Hareket var mı?", shape=diamond];
+    duman_kontrol [label="Duman veya ısı > 50°C var mı?", shape=diamond];
+    kamera_kontrol [label="Kamera: Yabancı kişi tespit edildi mi?", shape=diamond];
+
+    // --- Tehdit seviyesi değerlendirme ---
+    tehdit_deger [label="Tehdit Seviyesi Belirle", shape=box];
+    seviye_kontrol [label="Tehdit Seviyesi", shape=diamond];
+
+    // --- Farklı tehdit düzeyleri ---
+    guvenli [label="🌙 Güvenli Durum\nAlarm Kapalı", shape=box];
+    dusuk [label="⚠️ Düşük Tehdit (Hareket Algılandı)", shape=box];
+    orta [label="🚨 Orta Tehdit (Duman / Yüksek Isı)\nAlarm Çal, Bildirim Gönder", shape=box];
+    yuksek [label="🚨🚨 Yüksek Tehdit (Yabancı Kişi)\nAlarm + Kamera Kaydı + Bildirim", shape=box];
+
+    // --- Alarm sıfırlama ---
+    alarm_kontrol [label="Alarm Durumu 'AÇIK' mı?", shape=diamond];
+    reset_kontrol [label="Kullanıcı 'SIFIRLA' komutu girdi mi?", shape=diamond];
+    alarm_reset [label="🔕 Alarm Sıfırla\nSistemi İzleme Moduna Al", shape=box];
+    alarm_aktif [label="⏳ Alarm Aktif, İzleme Devam", shape=box];
+
+    // --- Döngü tekrarı ---
+    bekle [label="Bekle(5 saniye)", shape=box];
+    loop_back [label="Yeni Sensör Verisi Oku", shape=box];
+
+    // --- Akış bağlantıları ---
+    start -> init -> aktif -> dongu;
+    dongu -> sensor_okuma -> tehdit_sifir;
+    tehdit_sifir -> hareket_kontrol;
+
+    hareket_kontrol -> duman_kontrol [label="Evet\n(+1)"];
+    hareket_kontrol -> duman_kontrol [label="Hayır"];
+    duman_kontrol -> kamera_kontrol [label="Evet\n(+2)"];
+    duman_kontrol -> kamera_kontrol [label="Hayır"];
+    kamera_kontrol -> tehdit_deger [label="Evet\n(+3)"];
+    kamera_kontrol -> tehdit_deger [label="Hayır"];
+
+    tehdit_deger -> seviye_kontrol;
+
+    seviye_kontrol -> guvenli [label="0"];
+    seviye_kontrol -> dusuk [label="1"];
+    seviye_kontrol -> orta [label="2"];
+    seviye_kontrol -> yuksek [label="3+"];
+
+    guvenli -> alarm_kontrol;
+    dusuk -> alarm_kontrol;
+    orta -> alarm_kontrol;
+    yuksek -> alarm_kontrol;
+
+    alarm_kontrol -> reset_kontrol [label="Evet"];
+    alarm_kontrol -> bekle [label="Hayır"];
+
+    reset_kontrol -> alarm_reset [label="Evet"];
+    reset_kontrol -> alarm_aktif [label="Hayır"];
+
+    alarm_reset -> bekle;
+    alarm_aktif -> bekle;
+
+    bekle -> loop_back -> dongu;
+}
+
+🧠 Açıklama:
+
+Bu akış şeması şu mantığı izler:
+
+Sonsuz döngü içinde sensörler sürekli okunur.
+
+Tehdit seviyesi, sensör durumlarına göre kademeli olarak artar.
+
+Tehdit düzeyine göre alarm ve bildirim işlemleri yapılır.
+
+Alarm manuel sıfırlanıncaya kadar aktif kalır.
+
+Döngü 5 saniye aralıklarla tekrarlanır.
+
+İstersen bu diyagramın:
+
+🔹 renkli modüllerle (örneğin sensörler mavi, alarm işlemleri kırmızı)
+
+🔹 veya sadeleştirilmiş özet versiyonunu
+hazırlayabilirim.
+
+Hangisini tercih edersin?
+
+ChatGPT hata yapabilir. Önemli bilgileri kontrol edin.
