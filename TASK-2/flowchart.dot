@@ -1,0 +1,92 @@
+digraph E_Ticaret_Siparis {
+    rankdir=TB;
+    node [shape=box, style=rounded, fontname="Arial"];
+
+    start [shape=oval, label="Başla"];
+    login [shape=diamond, label="Kullanıcı giriş yaptı mı?"];
+    loginPrompt [shape=parallelogram, label="Kullanıcı giriş yap veya kayıt ol"];
+    exit1 [shape=oval, label="Bitir"];
+    
+    browse [shape=box, label="Ürün kategorileri arasında gezin"];
+    selectCat [shape=parallelogram, label="Kategori seçimi"];
+    listProd [shape=box, label="Kategoriye ait ürünleri listele"];
+    chooseAction [shape=diamond, label="Kullanıcı eylemi? (Ürün Ekle / Sepet / Çıkış)"];
+
+    addProd [shape=box, label="Ürünü sepete ekle"];
+    stockCheck [shape=diamond, label="Stok yeterli mi?"];
+    stockNo [shape=box, label="Yetersiz stok uyarısı"];
+    
+    cartView [shape=box, label="Sepeti görüntüle ve düzenle"];
+    cartLoop [shape=diamond, label="Sepet düzenlemesi bitti mi?"];
+    
+    calcTotal [shape=box, label="Sepet toplamını hesapla"];
+    minCheck [shape=diamond, label="Toplam ≥ 50 TL mi?"];
+    contShop [shape=parallelogram, label="Alışverişe devam et? (E/H)"];
+    
+    discountAsk [shape=parallelogram, label="İndirim kodu gir"];
+    discountCheck [shape=diamond, label="Kod geçerli mi?"];
+    discountApply [shape=box, label="İndirim uygula"];
+    discountSkip [shape=box, label="İndirim uygulanmadı"];
+
+    shipCalc [shape=diamond, label="Toplam ≥ 200 TL mi?"];
+    shipFree [shape=box, label="Kargo Ücretsiz"];
+    shipPaid [shape=box, label="Kargo Ücreti Hesapla"];
+
+    paymentSelect [shape=parallelogram, label="Ödeme yöntemi seç"];
+    paymentCheck [shape=diamond, label="Geçerli ödeme yöntemi mi?"];
+    confirm [shape=diamond, label="Sipariş onaylandı mı?"];
+    orderSuccess [shape=box, label="Sipariş başarıyla oluşturuldu"];
+    orderFail [shape=box, label="Sipariş iptal edildi"];
+    end [shape=oval, label="Bitiş"];
+
+    // Akışlar
+    start -> login;
+    login -> loginPrompt [label="Hayır"];
+    login -> browse [label="Evet"];
+    loginPrompt -> exit1 [label="Giriş yapılmadı"];
+    loginPrompt -> browse [label="Giriş yapıldı"];
+
+    browse -> selectCat;
+    selectCat -> listProd;
+    listProd -> chooseAction;
+
+    chooseAction -> addProd [label="Ürün Ekle"];
+    chooseAction -> cartView [label="Sepet"];
+    chooseAction -> calcTotal [label="Çıkış"];
+
+    addProd -> stockCheck;
+    stockCheck -> stockNo [label="Hayır"];
+    stockCheck -> browse [label="Evet"];
+    stockNo -> browse;
+
+    cartView -> cartLoop;
+    cartLoop -> browse [label="Hayır"];
+    cartLoop -> cartView [label="Düzenleme devam"];
+
+    calcTotal -> minCheck;
+    minCheck -> discountAsk [label="Evet"];
+    minCheck -> contShop [label="Hayır"];
+    contShop -> browse [label="Evet"];
+    contShop -> end [label="Hayır"];
+
+    discountAsk -> discountCheck;
+    discountCheck -> discountApply [label="Evet"];
+    discountCheck -> discountSkip [label="Hayır"];
+    discountApply -> shipCalc;
+    discountSkip -> shipCalc;
+
+    shipCalc -> shipFree [label="Evet"];
+    shipCalc -> shipPaid [label="Hayır"];
+    shipFree -> paymentSelect;
+    shipPaid -> paymentSelect;
+
+    paymentSelect -> paymentCheck;
+    paymentCheck -> confirm [label="Evet"];
+    paymentCheck -> paymentSelect [label="Hayır"];
+
+    confirm -> orderSuccess [label="Evet"];
+    confirm -> orderFail [label="Hayır"];
+
+    orderSuccess -> end;
+    orderFail -> end;
+}
